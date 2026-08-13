@@ -8,7 +8,6 @@
 
         public string Email { get; set; } = string.Empty;
 
-        // Identity user who registered for the event
         public string? UserId { get; set; }
 
         public int EventId { get; set; }

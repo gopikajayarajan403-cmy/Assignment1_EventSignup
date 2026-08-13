@@ -18,15 +18,11 @@ namespace Assignment_1_Sample_Solution.Data
             var userManager = serviceProvider
                 .GetRequiredService<UserManager<IdentityUser>>();
 
-            // -------------------------------------------------
-            // Make sure all database migrations are applied
-            // -------------------------------------------------
+            
 
             await context.Database.MigrateAsync();
 
-            // -------------------------------------------------
-            // Seed Roles
-            // -------------------------------------------------
+
 
             string[] roles =
             {
@@ -52,9 +48,7 @@ namespace Assignment_1_Sample_Solution.Data
                 }
             }
 
-            // -------------------------------------------------
-            // Seed Organizer User
-            // -------------------------------------------------
+           
 
             var organizerEmail = "organizer@example.com";
 
@@ -102,10 +96,7 @@ namespace Assignment_1_Sample_Solution.Data
                 }
             }
 
-            // -------------------------------------------------
-            // Seed Attendee User
-            // -------------------------------------------------
-
+            
             var attendeeEmail = "attendee@example.com";
 
             var attendeeUser = await userManager.FindByEmailAsync(
@@ -152,9 +143,7 @@ namespace Assignment_1_Sample_Solution.Data
                 }
             }
 
-            // -------------------------------------------------
-            // Seed Events
-            // -------------------------------------------------
+            
 
             if (!await context.Events.AnyAsync())
             {
@@ -203,9 +192,7 @@ namespace Assignment_1_Sample_Solution.Data
 
                 await context.SaveChangesAsync();
 
-                // -------------------------------------------------
-                // Seed Sample Attendees
-                // -------------------------------------------------
+               
 
                 var attendees = new List<Attendee>
                 {

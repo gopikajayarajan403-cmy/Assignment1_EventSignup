@@ -238,8 +238,7 @@ namespace Assignment_1_Sample_Solution.Controllers
                     "/uploads/" + fileName;
             }
 
-            // IMPORTANT:
-            // We intentionally do NOT change OrganizerUserId.
+            
             // The existing Organizer remains the owner.
             await _context.SaveChangesAsync();
 
@@ -350,10 +349,7 @@ namespace Assignment_1_Sample_Solution.Controllers
                 new { id = eventId });
         }
 
-        // ==========================================
-        // SELF-REGISTER FOR EVENT
-        // ANY AUTHENTICATED USER
-        // ==========================================
+        
 
         // POST: /events/1/register
         // ==========================================
@@ -527,8 +523,6 @@ namespace Assignment_1_Sample_Solution.Controllers
                     new { id = eventId });
             }
 
-            // Save the information before deleting the record.
-            // We need the attendee name/email for SignalR.
             var attendeeName = attendee.Name;
             var attendeeEmail = attendee.Email;
 

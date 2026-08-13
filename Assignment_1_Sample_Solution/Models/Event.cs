@@ -14,7 +14,6 @@
 
         public string BannerUrl { get; set; } = string.Empty;
 
-        // Identity user who owns/created this event
         public string? OrganizerUserId { get; set; }
 
         public List<Attendee> Attendees { get; set; } = new();
