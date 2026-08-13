@@ -1,0 +1,109 @@
+﻿@model Assignment_1_Sample_Solution.Models.Event
+
+<h1>Manage Attendees - @Model.Title</h1>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">
+        @TempData["Message"]
+    </div>
+}
+
+<hr />
+
+<h3>Sign Up for @Model.Title</h3>
+
+<form action="/events/@Model.Id/attendees/create" method="post">
+
+    @Html.AntiForgeryToken()
+
+    <input type="hidden"
+           name="eventId"
+           value="@Model.Id" />
+
+    <div class="mb-3">
+        <label>Name</label>
+
+        <input class="form-control"
+               name="name"
+               required />
+    </div>
+
+    <div class="mb-3">
+        <label>Email</label>
+
+        <input class="form-control"
+               name="email"
+               type="email"
+               required />
+    </div>
+
+    <button type="submit"
+            class="btn btn-success">
+        Sign Up
+    </button>
+
+    <a asp-action="Index"
+       class="btn btn-secondary">
+        Back to Events
+    </a>
+
+</form>
+
+<hr />
+
+<h3>
+    Current Attendees (@Model.Attendees.Count)
+</h3>
+
+@if (Model.Attendees.Count == 0)
+{
+    <p>No attendees yet.</p>
+}
+else
+{
+    <table class="table table-striped">
+
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            @foreach (var attendee in Model.Attendees)
+            {
+                <tr>
+                    <td>
+                        @attendee.Name
+                    </td>
+
+                    <td>
+                        @attendee.Email
+                    </td>
+
+                    <td>
+                        <a asp-action="EditAttendee"
+                           asp-route-eventId="@Model.Id"
+                           asp-route-attendeeId="@attendee.Id"
+                           class="btn btn-sm btn-primary">
+                            Edit
+                        </a>
+
+                        <a asp-action="DeleteAttendee"
+                           asp-route-eventId="@Model.Id"
+                           asp-route-attendeeId="@attendee.Id"
+                           class="btn btn-sm btn-danger">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+}

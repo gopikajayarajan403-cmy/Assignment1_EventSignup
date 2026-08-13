@@ -1,0 +1,334 @@
+﻿@using System.Security.Claims
+@model Assignment_1_Sample_Solution.Models.Event
+
+@{
+    ViewData["Title"] = "Event Details";
+
+    var currentUserId = User.FindFirstValue(
+        ClaimTypes.NameIdentifier);
+
+    var isRegistered = !string.IsNullOrEmpty(currentUserId)
+        && Model.Attendees.Any(a => a.UserId == currentUserId);
+}
+
+<h1>@Model.Title</h1>
+
+@if (!string.IsNullOrEmpty(Model.BannerUrl))
+{
+    <div class="mb-4">
+        <img src="@Model.BannerUrl"
+             alt="@Model.Title banner"
+             class="img-fluid"
+             style="max-width: 800px; max-height: 400px; object-fit: cover;" />
+    </div>
+}
+
+<hr />
+
+<dl class="row">
+
+    <dt class="col-sm-2">
+        Description
+    </dt>
+
+    <dd class="col-sm-10">
+        @Model.Description
+    </dd>
+
+    <dt class="col-sm-2">
+        Date
+    </dt>
+
+    <dd class="col-sm-10">
+        @Model.Date
+    </dd>
+
+    <dt class="col-sm-2">
+        Location
+    </dt>
+
+    <dd class="col-sm-10">
+        @Model.Location
+    </dd>
+
+</dl>
+
+<hr />
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">
+        @TempData["Message"]
+    </div>
+}
+
+@if (User.IsInRole("Organizer"))
+{
+    <div id="organizerNotification"
+         class="alert alert-warning"
+         style="display: none;">
+    </div>
+}
+
+<h2>Registration</h2>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    @if (isRegistered)
+    {
+        <div class="alert alert-success">
+            You are registered for this event.
+        </div>
+
+        <form asp-action="Unregister"
+              asp-route-eventId="@Model.Id"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <button type="submit"
+                    class="btn btn-warning">
+                Unregister from Event
+            </button>
+
+        </form>
+    }
+    else
+    {
+        <form asp-action="Register"
+              asp-route-eventId="@Model.Id"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <button type="submit"
+                    class="btn btn-success">
+                Register for Event
+            </button>
+
+        </form>
+    }
+}
+else
+{
+    <div class="alert alert-info">
+        Please log in to register for this event.
+    </div>
+}
+
+<hr />
+
+<h2>
+    Attendees
+    <span id="attendeeCount"
+          class="badge bg-secondary">
+        @Model.Attendees.Count
+    </span>
+</h2>
+
+@if (Model.Attendees != null && Model.Attendees.Count > 0)
+{
+    <ul id="attendeeList"
+        class="list-group mb-3">
+
+        @foreach (var attendee in Model.Attendees)
+        {
+            <li class="list-group-item">
+                <strong>@attendee.Name</strong>
+                (@attendee.Email)
+            </li>
+        }
+
+    </ul>
+}
+else
+{
+    <ul id="attendeeList"
+        class="list-group mb-3">
+    </ul>
+
+    <p id="noAttendeesMessage">
+        No attendees registered yet.
+    </p>
+}
+
+<div class="mt-3">
+
+    @if (User.IsInRole("Organizer"))
+    {
+        <a asp-action="Edit"
+           asp-route-id="@Model.Id"
+           class="btn btn-secondary">
+            Edit Event
+        </a>
+
+        <a asp-action="Delete"
+           asp-route-id="@Model.Id"
+           class="btn btn-danger">
+            Delete Event
+        </a>
+
+        <a href="/events/@Model.Id/attendees"
+           class="btn btn-primary">
+            Manage Attendees
+        </a>
+    }
+
+    <a asp-action="Index"
+       class="btn btn-outline-secondary">
+        Back to Events
+    </a>
+
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+
+    <script>
+        const eventId = @Model.Id;
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/eventHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("AttendeeRegistered", function(data) {
+
+            const attendeeCount =
+                document.getElementById("attendeeCount");
+
+            if (attendeeCount) {
+                attendeeCount.textContent = data.count;
+            }
+
+            const attendeeList =
+                document.getElementById("attendeeList");
+
+            if (attendeeList && data.name && data.email) {
+
+                const item = document.createElement("li");
+
+                item.className = "list-group-item";
+
+                const strong = document.createElement("strong");
+
+                strong.textContent = data.name;
+
+                item.appendChild(strong);
+
+                item.appendChild(
+                    document.createTextNode(
+                        " (" + data.email + ")"
+                    )
+                );
+
+                attendeeList.appendChild(item);
+            }
+
+            const noAttendeesMessage =
+                document.getElementById("noAttendeesMessage");
+
+            if (noAttendeesMessage) {
+                noAttendeesMessage.style.display = "none";
+            }
+        });
+
+        connection.on("AttendeeUnregistered", function(data) {
+
+            // Update the attendee count
+            const attendeeCount =
+                document.getElementById("attendeeCount");
+
+            if (attendeeCount) {
+                attendeeCount.textContent = data.count;
+            }
+
+            // Find the attendee list
+            const attendeeList =
+                document.getElementById("attendeeList");
+
+            if (attendeeList && data.email) {
+
+                // Find the attendee row whose text contains
+                // the email that was unregistered
+                const items =
+                    attendeeList.querySelectorAll("li");
+
+                items.forEach(function(item) {
+
+                    if (item.textContent.includes(data.email)) {
+                        item.remove();
+                    }
+
+                });
+            }
+
+            // If the list is now empty, show the message
+            if (attendeeList &&
+                attendeeList.children.length === 0) {
+
+                let noAttendeesMessage =
+                    document.getElementById("noAttendeesMessage");
+
+                if (!noAttendeesMessage) {
+
+                    noAttendeesMessage =
+                        document.createElement("p");
+
+                    noAttendeesMessage.id =
+                        "noAttendeesMessage";
+
+                    noAttendeesMessage.textContent =
+                        "No attendees registered yet.";
+
+                    attendeeList.parentNode.insertBefore(
+                        noAttendeesMessage,
+                        attendeeList.nextSibling
+                    );
+                }
+            }
+        });
+
+        connection.on("OrganizerNotification", function(message) {
+
+            const notification =
+                document.getElementById("organizerNotification");
+
+            if (notification) {
+                notification.textContent = message;
+                notification.style.display = "block";
+            }
+
+        });
+
+        async function startSignalR() {
+
+            try {
+
+                await connection.start();
+
+                await connection.invoke(
+                    "JoinEventGroup",
+                    eventId
+                );
+
+                console.log("Connected to SignalR.");
+
+            }
+            catch (err) {
+
+                console.error(
+                    "SignalR connection error:",
+                    err
+                );
+
+                setTimeout(
+                    startSignalR,
+                    5000
+                );
+            }
+        }
+
+        startSignalR();
+    </script>
+}

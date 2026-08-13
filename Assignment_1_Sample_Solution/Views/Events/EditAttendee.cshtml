@@ -1,0 +1,42 @@
+﻿@model Assignment_1_Sample_Solution.Models.Attendee
+
+<h1>Edit Attendee</h1>
+
+<form asp-action="EditAttendee" method="post">
+
+    <input type="hidden" name="eventId" value="@Model.EventId" />
+    <input type="hidden" name="attendeeId" value="@Model.Id" />
+
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+
+        <input asp-for="Name"
+               class="form-control" />
+
+        <span asp-validation-for="Name"
+              class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+
+        <input asp-for="Email"
+               type="email"
+               class="form-control" />
+
+        <span asp-validation-for="Email"
+              class="text-danger"></span>
+    </div>
+
+    <button type="submit"
+            class="btn btn-primary">
+        Save Changes
+    </button>
+
+    <a asp-action="ManageAttendees"
+       asp-route-id="@Model.EventId"
+       class="btn btn-secondary">
+        Back to Attendees
+    </a>
+
+</form>
